@@ -1,0 +1,1 @@
+SharmHub API ready for Cloudflare Worker. Required D1 binding name: db. Test /health after deployment.
