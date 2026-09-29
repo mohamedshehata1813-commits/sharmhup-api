@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sharm Hub Admin</title>
+<style>
+:root{--navy:#06294b;--orange:#ff641e;--bg:#f4f8fc;--green:#0aa85b;--red:#e34b4b}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Tahoma,sans-serif;background:var(--bg);color:#14283c}
+aside{position:fixed;right:0;top:0;bottom:0;width:220px;background:var(--navy);color:white;padding:25px 16px}
+.logo{font-size:25px;font-weight:900;margin-bottom:30px}.logo b{color:var(--orange)}
+aside a{display:block;color:#dbe9f5;text-decoration:none;padding:13px;border-radius:10px;margin:4px 0}aside a:hover{background:#ffffff18}
+main{margin-right:220px;padding:28px}.top{display:flex;justify-content:space-between;align-items:center}.btn{border:0;border-radius:10px;padding:11px 15px;background:var(--orange);color:white;font-weight:800;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:24px 0}.stat,.panel{background:white;border-radius:16px;padding:20px;box-shadow:0 5px 20px #153b5c10}.stat small{color:#718195}.stat strong{display:block;font-size:28px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:right;padding:13px 10px;border-bottom:1px solid #edf1f5}th{color:#6d7c8b}.badge{padding:6px 9px;border-radius:20px;font-size:12px;font-weight:800}.confirmed{background:#e7f8ef;color:#078649}.pending{background:#fff3df;color:#b16c00}.cancelled{background:#fdeaea;color:#bd3030}
+select,input{padding:9px;border:1px solid #dce5ed;border-radius:8px}.actions{display:flex;gap:6px}.mini{border:0;padding:7px 9px;border-radius:7px;cursor:pointer}.green{background:#e5f8ee;color:#087e46}.red{background:#fde9e9;color:#b53030}
+.tripform{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;margin:14px 0}.triplist{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.trip{border:1px solid #e6edf3;border-radius:12px;padding:14px}.trip h4{margin:0 0 8px}.trip strong{color:var(--orange)}
+.note{color:#758596;font-size:13px;margin-top:12px}
+@media(max-width:800px){aside{position:static;width:auto}main{margin:0;padding:16px}.stats{grid-template-columns:1fr 1fr}.triplist{grid-template-columns:1fr}.tripform{grid-template-columns:1fr}.panel{overflow:auto}.top{align-items:flex-start;gap:10px}}
+</style>
+</head>
+<body>
+<aside><div class="logo">Sharm<b>Hub</b></div>
+<a href="index.html">🏠 الموقع</a><a href="#dashboard">📊 لوحة التحكم</a><a href="#bookings">📅 الحجوزات</a><a href="#trips">🛥️ الرحلات والأسعار</a>
+</aside>
+<main>
+<div class="top"><div><h1 style="margin:0">لوحة التحكم</h1><p style="color:#718195">إدارة Sharm Hub — نسخة تجريبية مجانية</p></div><a href="index.html"><button class="btn">فتح موقع العميل</button></a></div>
+<section class="stats" id="dashboard">
+<div class="stat"><small>إجمالي الحجوزات</small><strong id="total">0</strong></div>
+<div class="stat"><small>مؤكدة</small><strong id="confirmed">0</strong></div>
+<div class="stat"><small>قيد الانتظار</small><strong id="pending">0</strong></div>
+<div class="stat"><small>ملغاة</small><strong id="cancelled">0</strong></div>
+</section>
+<section class="panel" id="bookings"><h2>الحجوزات</h2>
+<table><thead><tr><th>رقم الحجز</th><th>العميل</th><th>الرحلة</th><th>التاريخ</th><th>الفندق / الغرفة</th><th>الأشخاص</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="rows"></tbody></table>
+<p class="note">الحجوزات هنا تُقرأ من نفس متصفح الجهاز في النسخة التجريبية.</p>
+</section>
+<section class="panel" id="trips" style="margin-top:18px"><h2>إدارة الرحلات والأسعار</h2>
+<div class="tripform"><input id="tn" placeholder="اسم الرحلة"><input id="tp" type="number" placeholder="السعر $"><input id="tt" placeholder="الوقت"><button class="btn" onclick="addTrip()">+ إضافة رحلة</button></div>
+<div class="triplist" id="triplist"></div>
+<p class="note">تعديلات هذه الصفحة تجريبية ومحفوظة على هذا الجهاز فقط. في النسخة المنشورة سنربطها بقاعدة بيانات سحابية.</p>
+</section>
+</main>
+<script>
+let bookings=JSON.parse(localStorage.getItem("sharmhub_bookings")||"[]");
+bookings=bookings.map(b=>({...b,status:b.status||"pending"}));
+function renderBookings(){
+let r=document.getElementById("rows");r.innerHTML="";
+bookings.forEach((b,i)=>{
+let ar=b.status==="confirmed"?"مؤكد":b.status==="cancelled"?"ملغي":"انتظار";
+r.innerHTML+=`<tr><td>${b.id||"-"}</td><td>${b.name||"-"}<br><small>${b.phone||""}</small></td><td>${b.trip||"-"}</td><td>${b.date||"-"}</td><td>${b.hotel||"-"} / ${b.room||"-"}</td><td>${b.adults||0} بالغ + ${b.children||0} طفل</td><td><span class="badge ${b.status}">${ar}</span></td><td><div class="actions"><button class="mini green" onclick="status(${i},'confirmed')">تأكيد</button><button class="mini red" onclick="status(${i},'cancelled')">إلغاء</button></div></td></tr>`;
+});
+document.getElementById("total").textContent=bookings.length;
+document.getElementById("confirmed").textContent=bookings.filter(x=>x.status==="confirmed").length;
+document.getElementById("pending").textContent=bookings.filter(x=>x.status==="pending").length;
+document.getElementById("cancelled").textContent=bookings.filter(x=>x.status==="cancelled").length;
+localStorage.setItem("sharmhub_bookings",JSON.stringify(bookings));
+}
+function status(i,s){bookings[i].status=s;renderBookings()}
+let trips=JSON.parse(localStorage.getItem("admin_trips")||`[
+{"name":"رأس محمد والجزيرة البيضاء","price":35,"time":"08:00 - 17:00"},
+{"name":"سفاري باجي","price":15,"time":"17:00 - 20:00"},
+{"name":"عشاء اليخت","price":30,"time":"18:00 - 21:00"},
+{"name":"عرض الدولفين","price":20,"time":"02:30"},
+{"name":"الغواصة","price":25,"time":"09:00 / 10:30 / 13:30"},
+{"name":"أكوا بارك","price":55,"time":"10:00 - 18:00"}]`);
+function renderTrips(){
+let x=document.getElementById("triplist");x.innerHTML="";
+trips.forEach((t,i)=>x.innerHTML+=`<div class="trip"><h4>${t.name}</h4><strong>$${t.price}</strong><p>${t.time}</p><button class="mini red" onclick="delTrip(${i})">حذف</button></div>`);
+localStorage.setItem("admin_trips",JSON.stringify(trips));
+}
+function addTrip(){let n=tn.value.trim(),p=tp.value,t=tt.value.trim();if(!n||!p)return alert("أدخل اسم الرحلة والسعر");trips.push({name:n,price:+p,time:t||"-"});tn.value=tp.value=tt.value="";renderTrips()}
+function delTrip(i){if(confirm("حذف الرحلة؟")){trips.splice(i,1);renderTrips()}}
+renderBookings();renderTrips();
+</script>
+</body></html>
